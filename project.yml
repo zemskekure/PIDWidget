@@ -1,0 +1,82 @@
+name: PIDWidget
+options:
+  bundleIdPrefix: cz.cervenka
+  deploymentTarget:
+    iOS: "16.0"
+  xcodeVersion: "15.0"
+  generateEmptyDirectories: true
+
+settings:
+  base:
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+    SWIFT_VERSION: "5.9"
+
+targets:
+  PIDWidget:
+    type: application
+    platform: iOS
+    sources:
+      - path: PIDWidget
+        excludes:
+          - "**/.DS_Store"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: cz.cervenka.pidwidget
+        INFOPLIST_FILE: PIDWidget/Info.plist
+        CODE_SIGN_ENTITLEMENTS: PIDWidget/PIDWidget.entitlements
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+    entitlements:
+      path: PIDWidget/PIDWidget.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.cz.cervenka.pidwidget
+    info:
+      path: PIDWidget/Info.plist
+      properties:
+        CFBundleDisplayName: PID Odjezdy
+        CFBundleShortVersionString: "1.0"
+        CFBundleVersion: "1"
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        NSLocationWhenInUseUsageDescription: "Aplikace potřebuje polohu pro nalezení nejbližší zastávky."
+        NSLocationAlwaysAndWhenInUseUsageDescription: "Pro aktualizaci widgetu na pozadí."
+    dependencies:
+      - target: PIDWidgetExtension
+
+  PIDWidgetExtension:
+    type: app-extension
+    platform: iOS
+    product: PIDWidgetExtension
+    sources:
+      - path: PIDWidgetExtension
+        excludes:
+          - "**/.DS_Store"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: cz.cervenka.pidwidget.widget
+        INFOPLIST_FILE: PIDWidgetExtension/Info.plist
+        CODE_SIGN_ENTITLEMENTS: PIDWidgetExtension/PIDWidgetExtension.entitlements
+        ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME: WidgetBackground
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        SKIP_INSTALL: YES
+    entitlements:
+      path: PIDWidgetExtension/PIDWidgetExtension.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.cz.cervenka.pidwidget
+    info:
+      path: PIDWidgetExtension/Info.plist
+      properties:
+        CFBundleDisplayName: PID Widget
+        CFBundleShortVersionString: "1.0"
+        CFBundleVersion: "1"
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension

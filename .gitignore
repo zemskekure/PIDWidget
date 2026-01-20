@@ -1,0 +1,28 @@
+# Xcode
+*.xcodeproj/project.xcworkspace/
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+DerivedData/
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+*.xcuserstate
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Node modules (for Vercel API)
+node_modules/
+.vercel/
+
+# Environment variables
+.env
+.env.local
+
+# Build outputs
+build/
+dist/
