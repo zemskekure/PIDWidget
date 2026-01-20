@@ -67,8 +67,7 @@ struct CachedLocation: Codable {
 actor GolemioAPI {
     static let shared = GolemioAPI()
 
-    // TODO: Replace with your Vercel deployment URL
-    private let baseURL = "https://pid-widget-api.vercel.app/api"
+    private let baseURL = "https://api-ten-nu-45.vercel.app/api"
 
     private init() {}
 
