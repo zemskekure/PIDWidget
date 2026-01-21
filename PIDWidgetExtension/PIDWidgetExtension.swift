@@ -70,9 +70,7 @@ struct DepartureProvider: TimelineProvider {
     }
 
     private func fetchDepartures() async -> DepartureEntry {
-        // Try to get cached location and find nearby stops
-        var nearbyStopName: String?
-
+        // Try to get cached location and find nearby stops with trams
         if let locationData = userDefaults?.data(forKey: "lastLocation"),
            let cached = try? JSONDecoder().decode(CachedLocation.self, from: locationData),
            Date().timeIntervalSince(cached.timestamp) < 600 {
@@ -84,49 +82,66 @@ struct DepartureProvider: TimelineProvider {
                     latitude: cached.latitude,
                     longitude: cached.longitude
                 )
-                nearbyStopName = stops.first?.name
-                print("📍 [Widget] Found nearby stop: \(nearbyStopName ?? "none")")
+                print("📍 [Widget] Found \(stops.count) nearby stops")
+
+                // Try each stop until we find one with tram departures
+                for stop in stops {
+                    print("🚇 [Widget] Trying stop: \(stop.name)")
+                    do {
+                        let departures = try await GolemioAPI.shared.getDepartures(stopName: stop.name)
+                        if !departures.isEmpty {
+                            print("🚇 [Widget] Got \(departures.count) departures from \(stop.name)")
+                            return DepartureEntry(
+                                date: Date(),
+                                stopName: stop.name,
+                                departures: Array(departures.prefix(4)),
+                                error: nil,
+                                isPlaceholder: false
+                            )
+                        }
+                        print("🚇 [Widget] No trams at \(stop.name), trying next...")
+                    } catch {
+                        print("🚇 [Widget] Error for \(stop.name): \(error)")
+                    }
+                }
+
+                // No stops with trams found
+                return DepartureEntry(
+                    date: Date(),
+                    stopName: "—",
+                    departures: [],
+                    error: "Žádná tramvaj v okolí",
+                    isPlaceholder: false
+                )
             } catch {
                 print("📍 [Widget] Error finding stops: \(error)")
             }
         }
 
-        // Use nearby stop or fallback
-        let finalStopName = nearbyStopName ?? userDefaults?.string(forKey: "fallbackStop")
-
-        guard let stopName = finalStopName, !stopName.isEmpty else {
-            return DepartureEntry(
-                date: Date(),
-                stopName: "—",
-                departures: [],
-                error: "Nastavte zastávku v aplikaci",
-                isPlaceholder: false
-            )
+        // Try fallback stop
+        if let fallbackStop = userDefaults?.string(forKey: "fallbackStop"), !fallbackStop.isEmpty {
+            print("🚇 [Widget] Using fallback: \(fallbackStop)")
+            do {
+                let departures = try await GolemioAPI.shared.getDepartures(stopName: fallbackStop)
+                return DepartureEntry(
+                    date: Date(),
+                    stopName: fallbackStop,
+                    departures: Array(departures.prefix(4)),
+                    error: departures.isEmpty ? "Žádné tramvaje" : nil,
+                    isPlaceholder: false
+                )
+            } catch {
+                print("🚇 [Widget] Fallback error: \(error)")
+            }
         }
 
-        // Fetch departures
-        print("🚇 [Widget] Fetching departures for: '\(stopName)'")
-        do {
-            let departures = try await GolemioAPI.shared.getDepartures(stopName: stopName)
-            print("🚇 [Widget] Got \(departures.count) departures")
-
-            return DepartureEntry(
-                date: Date(),
-                stopName: stopName,
-                departures: Array(departures.prefix(4)),
-                error: nil,
-                isPlaceholder: false
-            )
-        } catch {
-            print("🚇 [Widget] Error: \(error)")
-            return DepartureEntry(
-                date: Date(),
-                stopName: stopName,
-                departures: [],
-                error: "Chyba: \(error.localizedDescription)",
-                isPlaceholder: false
-            )
-        }
+        return DepartureEntry(
+            date: Date(),
+            stopName: "—",
+            departures: [],
+            error: "Nastavte zastávku v aplikaci",
+            isPlaceholder: false
+        )
     }
 }
 

@@ -156,28 +156,27 @@ struct ContentView: View {
                 )
                 print("🔍 Found \(stops.count) stops: \(stops.map { $0.name })")
 
-                guard let nearest = stops.first else {
-                    await MainActor.run {
-                        errorMessage = "Žádná zastávka v okolí (radius 1000m)"
-                        isLoading = false
+                // Try each stop until we find one with tram departures
+                for stop in stops {
+                    print("🚇 Trying stop: \(stop.name)")
+                    let deps = try await GolemioAPI.shared.getDepartures(stopName: stop.name)
+                    if !deps.isEmpty {
+                        print("🚇 Got \(deps.count) departures from \(stop.name)")
+                        await MainActor.run {
+                            self.nearestStop = stop
+                            self.departures = deps
+                            self.isLoading = false
+                            WidgetCenter.shared.reloadAllTimelines()
+                        }
+                        return
                     }
-                    return
+                    print("🚇 No trams at \(stop.name), trying next...")
                 }
 
-                // Get departures using stop name
-                print("🚇 Fetching departures for: \(nearest.name)")
-                let deps = try await GolemioAPI.shared.getDepartures(stopName: nearest.name)
-                print("🚇 Got \(deps.count) departures")
-
+                // No stops with trams found
                 await MainActor.run {
-                    self.nearestStop = nearest
-                    self.departures = deps
-                    self.isLoading = false
-                    if deps.isEmpty {
-                        self.errorMessage = "Žádné tramvaje z \(nearest.name)"
-                    }
-                    // Trigger widget refresh
-                    WidgetCenter.shared.reloadAllTimelines()
+                    errorMessage = "Žádná tramvaj v okolí"
+                    isLoading = false
                 }
             } catch {
 
