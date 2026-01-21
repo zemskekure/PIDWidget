@@ -49,7 +49,7 @@ export default async function handler(req, res) {
     const data = await response.json();
     const now = new Date();
 
-    // Transform departures
+    // Transform departures - only trams (routeType 0)
     const departures = data.departures
       .map(dep => {
         const timeString = dep.departure_timestamp?.predicted || dep.departure_timestamp?.scheduled;
@@ -58,13 +58,17 @@ export default async function handler(req, res) {
         const depTime = new Date(timeString);
         const minutesRemaining = Math.floor((depTime - now) / 60000);
         const routeType = dep.route?.type ?? -1;
+
+        // Filter: only trams (type 0)
+        if (routeType !== 0) return null;
+
         const delayMinutes = dep.delay?.is_available ? (dep.delay?.minutes ?? 0) : 0;
 
         return {
           line: dep.route?.short_name ?? '?',
           headsign: dep.trip?.headsign ?? '',
           minutesRemaining,
-          isTram: routeType === 0,
+          isTram: true,
           departureTime: depTime.toISOString(),
           delayMinutes,
         };
