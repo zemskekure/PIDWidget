@@ -26,7 +26,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { lat, lng, radius = 1500 } = req.query;
+  const { lat, lng, radius = 500 } = req.query;
 
   if (!lat || !lng) {
     return res.status(400).json({ error: 'Missing lat or lng parameter' });
