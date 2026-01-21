@@ -26,7 +26,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { lat, lng, radius = 500 } = req.query;
+  const { lat, lng, radius = 1500 } = req.query;
 
   if (!lat || !lng) {
     return res.status(400).json({ error: 'Missing lat or lng parameter' });
@@ -59,7 +59,7 @@ export default async function handler(req, res) {
     const data = await response.json();
 
     // Filter and sort stops by distance
-    const nearbyStops = data.features
+    const allStops = data.features
       .map(feature => {
         const coords = feature.geometry?.coordinates;
         if (!coords || coords.length < 2 || !feature.properties.stop_name) {
@@ -80,10 +80,20 @@ export default async function handler(req, res) {
         };
       })
       .filter(stop => stop !== null && stop.distance <= searchRadius)
-      .sort((a, b) => a.distance - b.distance)
-      .slice(0, 10);
+      .sort((a, b) => a.distance - b.distance);
 
-    return res.status(200).json({ stops: nearbyStops });
+    // Deduplicate by stop name, keeping the closest platform for each name
+    const uniqueStops = [];
+    const seenNames = new Set();
+    for (const stop of allStops) {
+      if (!seenNames.has(stop.name)) {
+        seenNames.add(stop.name);
+        uniqueStops.push(stop);
+        if (uniqueStops.length >= 10) break;
+      }
+    }
+
+    return res.status(200).json({ stops: uniqueStops });
   } catch (error) {
     console.error('Error fetching stops:', error);
     return res.status(500).json({ error: 'Internal server error' });
