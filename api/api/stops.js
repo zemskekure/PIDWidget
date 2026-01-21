@@ -41,8 +41,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Fetch all stops from Golemio
-    const url = `${GOLEMIO_BASE_URL}/gtfs/stops?limit=5000`;
+    // Fetch all stops from Golemio (need high limit to get all Prague stops)
+    const url = `${GOLEMIO_BASE_URL}/gtfs/stops?limit=15000`;
 
     const response = await fetch(url, {
       headers: {
