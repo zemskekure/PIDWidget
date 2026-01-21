@@ -28,7 +28,7 @@ actor GolemioAPI {
 
     // MARK: - Find Nearby Stops
 
-    func findNearbyStops(latitude: Double, longitude: Double, radius: Int = 500) async throws -> [Stop] {
+    func findNearbyStops(latitude: Double, longitude: Double, radius: Int = 700) async throws -> [Stop] {
         var components = URLComponents(string: "\(baseURL)/stops")!
         components.queryItems = [
             URLQueryItem(name: "lat", value: String(latitude)),
