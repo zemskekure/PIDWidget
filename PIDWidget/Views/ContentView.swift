@@ -141,32 +141,41 @@ struct ContentView: View {
         Task {
             do {
                 // Try to get location
+                print("📍 Requesting location...")
                 let location = try await locationManager.requestLocation()
+                print("📍 Got location: \(location.coordinate.latitude), \(location.coordinate.longitude)")
 
                 // Save location for widget
                 locationManager.saveLocationForWidget(location)
 
                 // Find nearby stops
+                print("🔍 Finding nearby stops...")
                 let stops = try await GolemioAPI.shared.findNearbyStops(
                     latitude: location.coordinate.latitude,
                     longitude: location.coordinate.longitude
                 )
+                print("🔍 Found \(stops.count) stops: \(stops.map { $0.name })")
 
                 guard let nearest = stops.first else {
                     await MainActor.run {
-                        errorMessage = "Žádná zastávka v okolí"
+                        errorMessage = "Žádná zastávka v okolí (radius 1000m)"
                         isLoading = false
                     }
                     return
                 }
 
                 // Get departures using stop name
+                print("🚇 Fetching departures for: \(nearest.name)")
                 let deps = try await GolemioAPI.shared.getDepartures(stopName: nearest.name)
+                print("🚇 Got \(deps.count) departures")
 
                 await MainActor.run {
                     self.nearestStop = nearest
                     self.departures = deps
                     self.isLoading = false
+                    if deps.isEmpty {
+                        self.errorMessage = "Žádné tramvaje z \(nearest.name)"
+                    }
                     // Trigger widget refresh
                     WidgetCenter.shared.reloadAllTimelines()
                 }
