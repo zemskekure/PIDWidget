@@ -93,7 +93,7 @@ actor GolemioAPI {
             if resp.statusCode != 200 {
                 let body = String(data: data, encoding: .utf8) ?? "no body"
                 print("🔍 [Widget] findNearbyStops error body: \(body)")
-                throw URLError(.badServerResponse)
+                throw NSError(domain: "API", code: resp.statusCode, userInfo: [NSLocalizedDescriptionKey: "Stops HTTP \(resp.statusCode)"])
             }
         }
 
@@ -131,7 +131,7 @@ actor GolemioAPI {
             if resp.statusCode != 200 {
                 let body = String(data: data, encoding: .utf8) ?? "no body"
                 print("🚇 [Widget] getDepartures error body: \(body)")
-                throw URLError(.badServerResponse)
+                throw NSError(domain: "API", code: resp.statusCode, userInfo: [NSLocalizedDescriptionKey: "HTTP \(resp.statusCode)"])
             }
         }
 
